@@ -1,0 +1,180 @@
+#created by fftool
+echo both
+units metal
+boundary p p f 
+atom_style full
+bond_style harmonic
+angle_style harmonic
+dihedral_style opls
+special_bonds lj/coul 0.0 0.0 0.5
+
+## Parameters
+variable a equal 4.078 ## gold lattice constant
+variable L equal 8 ## Length of solid electrode
+variable T equal 298 ## Temperature K
+variable P equal 1 ## Pressure bar
+variable t equal 0.001 ## timestep
+variable phi equal $t*50 ## NPT relaxation constant
+variable pi equal $t*500
+
+## Potentials, craeting simulation box, and reading data
+pair_style hybrid lj/cut/coul/long 12 eam/fs
+region BOX block 0 32.624 0 32.624 0 265.248
+region Solid1 block 0 32.624 0 32.624 0 32.624
+region Fluid block 0 32.624 0 32.624 32.624 232.624
+region Solid2 block 0 32.624 0 32.624 232.624 265.248
+#create_box 9 BOX &
+#	bond/types 5 &
+#	angle/types 8 &
+#	dihedral/types 4 &
+#	improper/types 0 &
+#	extra/bond/per/atom 5 &
+#	extra/angle/per/atom 8 &
+#	extra/dihedral/per/atom 10 
+#read_data Au.data add append shift 0 0 0 
+#read_data Au.data add append offset 0 0 0 0 0 shift 0 0 232.624
+#read_data fluid_wall.data add append offset 1 0 0 0 0 shift 0 0 32.624
+read_data EDL_0.05.data
+pair_coeff * * eam/fs Au.eam.fs Au NULL NULL NULL NULL NULL NULL NULL NULL
+mass 2 6.941
+mass 3 12.011
+mass 4 18.998
+mass 5 32.066
+mass 6 14
+mass 7 15.999
+mass 8 1.008
+mass 9 15.999
+mass 1 196.96667
+
+include potential.coeff
+pair_coeff 1 2 lj/cut/coul/long 0.001 3
+pair_coeff 1 3 lj/cut/coul/long 0.001 3
+pair_coeff 1 4 lj/cut/coul/long 0.001 3
+pair_coeff 1 5 lj/cut/coul/long 0.001 3
+pair_coeff 1 6 lj/cut/coul/long 0.001 3
+pair_coeff 1 7 lj/cut/coul/long 0.001 3
+pair_coeff 1 8 lj/cut/coul/long 0.001 3
+pair_coeff 1 9 lj/cut/coul/long 0.001 3
+kspace_style pppm 1.0e-4
+kspace_modify slab 3
+#minimize 1.0e-8 1.0e-8 100 100
+#reset_timestep 0
+
+group AU type 1 
+set group AU charge 0
+group FLUID type 2 3 4 5 6 7 8 9 
+region P_LAYER block 0 32.624 0 32.624 32.2 32.4
+region N_LAYER block 0 32.624 0 32.624 234.3 234.4
+group CHARGED_P region P_LAYER 
+group CHARGED_N region N_LAYER 
+variable nchargep equal count(CHARGED_P)
+variable eneg equal 1.602*10^(-19)
+variable sigma equal 0.05
+variable Q equal ${sigma}*10^(-20)*($L*$a)^2/${nchargep}/${eneg}
+set group CHARGED_P charge $Q 
+set group CHARGED_N charge -$Q
+group OW type 9
+group HW type 8
+group Li type 2
+group C type 3
+group F type 4
+group S type 5
+group N type 6
+group Oa type 7
+set group C charge   0.3500
+set group F charge  -0.1600
+set group S charge   1.0200
+set group N charge  -0.6600
+set group Oa charge -0.5300
+set group Li charge  1.0000
+set group HW charge  0.4238
+set group OW charge -0.8476
+
+
+velocity AU set 0 0 0 
+variable N_STEPS equal 4000000
+variable N_PRINT equal ${N_STEPS}/100
+variable N_DUMP equal ${N_STEPS}/1000
+variable TK equal 300.0
+variable PBAR equal 1.0
+neighbor 2.0 bin
+neigh_modify delay 0 check yes every 1
+timestep $t
+
+thermo_style multi
+thermo ${N_PRINT}
+dump DUMP all xyz ${N_DUMP} EDL_${sigma}.xyz
+dump_modify DUMP element Au Li C F S N O H O
+fix WALL all wall/reflect zlo EDGE zhi EDGE
+fix SHAKE all shake 0.0001 20 0 b 5
+fix FREEZE AU setforce 0 0 0 #region Solid
+fix NVT all nvt temp ${TK} ${TK} ${phi}
+
+#group WATER type 8 9  
+#group Li type 2
+#group NTF2 type 3 4 5 6 7 
+#group OW type 9
+#group HW type 8
+#group Li type 2
+#group C type 3
+#group F type 4
+#group S type 5
+#group N type 6
+#group Oa type 7
+
+compute CHARGEli Li property/atom q
+compute CHARGEc C property/atom q
+compute CHARGEf F property/atom q
+compute CHARGEs S property/atom q
+compute CHARGEn N property/atom q
+compute CHARGEoa Oa property/atom q
+compute CHARGEow OW property/atom q
+compute CHARGEhw HW property/atom q
+compute CHARGEau AU property/atom q
+
+compute MOLli Li property/atom mass
+compute MOLc C property/atom mass
+compute MOLf F property/atom mass
+compute MOLs S property/atom mass
+compute MOLn N property/atom mass
+compute MOLoa Oa property/atom mass
+compute MOLow OW property/atom mass
+compute MOLhw HW property/atom mass
+compute MOLau AU property/atom mass
+
+compute BINSc all chunk/atom bin/1d z center 0.233 ids every
+fix RHOqc C ave/chunk 100 100 10000 BINSc c_CHARGEc c_MOLc file density_c_${sigma}.ave
+fix RHOqf F ave/chunk 100 100 10000 BINSc c_CHARGEf c_MOLf file density_f_${sigma}.ave
+fix RHOqs S ave/chunk 100 100 10000 BINSc c_CHARGEs c_MOLs file density_s_${sigma}.ave
+fix RHOqn N ave/chunk 100 100 10000 BINSc c_CHARGEn c_MOLn file density_n_${sigma}.ave
+fix RHOqoa Oa ave/chunk 100 100 10000 BINSc c_CHARGEoa c_MOLoa file density_oa_${sigma}.ave
+fix RHOqhw HW ave/chunk 100 100 10000 BINSc c_CHARGEhw c_MOLhw file density_hw_${sigma}.ave
+fix RHOqow OW ave/chunk 100 100 10000 BINSc c_CHARGEow c_MOLow file density_ow_${sigma}.ave
+fix RHOqli Li ave/chunk 100 100 10000 BINSc c_CHARGEli c_MOLli file density_li_${sigma}.ave
+fix RHOqau AU ave/chunk 100 100 10000 BINSc c_CHARGEau c_MOLau file density_au_${sigma}.ave
+
+
+#compute CHARGE all property/atom q
+#compute MOLw WATER property/atom mass
+#compute MOLc Li property/atom mass 
+#compute MOLa NTF2 property/atom mass 
+#compute BINSc all chunk/atom bin/1d z 32.624 .233 ids every
+#fix RHOq all ave/chunk 100 100 10000 BINSc c_CHARGE file charge_density_${sigma}.ave 
+#fix RHOw all ave/chunk 100 100 10000 BINSc c_MOLw file water_density_${sigma}.ave
+#fix RHOc all ave/chunk 100 100 10000 BINSc c_MOLc file cation_density_${sigma}.ave
+#fix RHOa all ave/chunk 100 100 10000 BINSc c_MOLa file anion_density_${sigma}.ave
+
+compute MOL all chunk/atom molecule
+compute COM all com/chunk MOL
+fix MU all ave/time 400 1 400 c_COM[3] file MOL_${sigma}.out mode vector
+
+compute TEMP all temp
+compute PRESS all pressure TEMP
+variable etotal equal etotal
+variable Nfreq equal ${N_STEPS}/1000
+variable Nevery equal 10
+variable Nrepeat equal ${Nfreq}/${Nevery}
+fix AVE all ave/time ${Nevery} ${Nrepeat} ${Nfreq} c_TEMP c_PRESS v_etotal file thermo_${sigma}.ave ave running
+
+run ${N_STEPS}
+write_data EDL_${sigma}.data
