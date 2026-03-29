@@ -2,7 +2,7 @@ Collected here are the critical files to reproduce the results displayed in "The
 
 ---
 
-The files are set up to be run directly by the user, so long as they are in the correct Active folder subfolder, to be discussed later. 
+The files are set up to be run directly by the user, so long as they are in the correct Active folder subfolder, to be discussed later. Note, there are larger files needed (e.g. LAMMPS data and pre-built meshes) that must be downloaded from the Dropbox link: (https://www.dropbox.com/scl/fo/jnswcs6v0a184tlw6y3rw/AFvkvrnEARWyRMXNX3HnBzk?rlkey=0cvwija1fgvebnucydvacrrru&st=ub7o8972&dl=0). If the link is down please reach out for the extra files. However, from the LAMMPS and the MATLAB code provided all these extra data files can be regenerated individually. These larger files should be added to the Runners folder to allow for immediate code execution.
 
 The files in the Lammps folder are those needed to run the MD simulations to generate the data used. The protocol behind these MD simulations have been previously outlined in "Theory of the double layer in water-in-salt electrolytes" by Michael McEldrew, Zachary AH Goodwin, Alexei A Kornyshev, Martin Z Bazant (https://arxiv.org/abs/1808.06118).
 
