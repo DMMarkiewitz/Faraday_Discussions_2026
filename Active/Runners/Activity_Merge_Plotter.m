@@ -1,229 +1,136 @@
-%Merging Activities
 close all
-clear all
+clearvars
 
-%Loading data for merging
-%21m
-TFSI_21_p_2 = load("S_Sticky_WiSE_21m_01_a_03_p_02.mat");
-TFSI_21_p_2 = TFSI_21_p_2.data;
-TFSI_21_m_2 = load("S_Sticky_WiSE_21m_01_a_03_m_02.mat");
-TFSI_21_m_2 = TFSI_21_m_2.data;
+set(groot, 'defaultAxesTickLabelInterpreter', 'latex');
+set(groot, 'DefaultTextInterpreter', 'latex');
 
-%15m
-TFSI_15_p_2 = load("S_Sticky_WiSE_15m_01_a_03_p_02.mat");
-TFSI_15_p_2 = TFSI_15_p_2.data;
-TFSI_15_m_2 = load("S_Sticky_WiSE_15m_01_a_03_m_02.mat");
-TFSI_15_m_2 = TFSI_15_m_2.data;
+scriptDir = fileparts(mfilename('fullpath'));
+if isempty(scriptDir)
+    scriptDir = pwd;
+end
 
-%12m
-TFSI_12_p_2 = load("S_Sticky_WiSE_12m_01_a_03_p_02.mat");
-TFSI_12_p_2 = TFSI_12_p_2.data;
-TFSI_12_m_2 = load("S_Sticky_WiSE_12m_01_a_03_m_02.mat");
-TFSI_12_m_2 = TFSI_12_m_2.data;
+xRange = 2;
+labelFontSize = 18;
+titleFontSize = 20;
+lineWidth = 1.5;
+outputDpi = 600;
 
-%0.5m bulk reference
-TFSI_05_0 = load("S_Sticky_WiSE_05m_01_a_03_0_02.mat");
-TFSI_05_0 = TFSI_05_0.data;
+% Load data once.
+data.p21 = loadActivityData(fullfile(scriptDir, 'S_Sticky_WiSE_21m_01_a_03_p_02.mat'));
+data.m21 = loadActivityData(fullfile(scriptDir, 'S_Sticky_WiSE_21m_01_a_03_m_02.mat'));
+data.p15 = loadActivityData(fullfile(scriptDir, 'S_Sticky_WiSE_15m_01_a_03_p_02.mat'));
+data.m15 = loadActivityData(fullfile(scriptDir, 'S_Sticky_WiSE_15m_01_a_03_m_02.mat'));
+data.p12 = loadActivityData(fullfile(scriptDir, 'S_Sticky_WiSE_12m_01_a_03_p_02.mat'));
+data.m12 = loadActivityData(fullfile(scriptDir, 'S_Sticky_WiSE_12m_01_a_03_m_02.mat'));
+ref = loadActivityData(fullfile(scriptDir, 'S_Sticky_WiSE_05m_01_a_03_0_02.mat'));
+refMuP = ref.mu_p(end);
+refMuM = ref.mu_m(end);
+refMu0 = ref.mu_0(end);
 
-%For ploting
-xrange = 2;
+series = [
+    struct('name', '21m', 'style', '-',  'color', '#940000', 'short', 'p21', 'long', 'm21'), ...
+    struct('name', '15m', 'style', '--', 'color', '#FF3333', 'short', 'p15', 'long', 'm15'), ...
+    struct('name', '12m', 'style', ':',  'color', '#FF8670', 'short', 'p12', 'long', 'm12')
+];
 
-figure('Renderer', 'painters', 'units','inches','Position',[.01 .01 4.5 6])
-ft = tiledlayout(2,1,'TileSpacing','none','padding','compact') %tight
-letters = 18;
-titlesize = 20;
+plotActivityFigure( ...
+    'Activity_05m_Li_V2', ...
+    'Li$^+$ Activity Shift', ...
+    'Ln($\bar{a}_i$/$a_i^\theta$)', ...
+    'mu_p', refMuP, ...
+    [ -0.5, 16.45 ], [6.5, 14.75], ...
+    [0 5 15], [1 2 15], ...
+    'a)', 'b)', ...
+    '#000000', '#000000', '#000000', ...
+    series, data, xRange, labelFontSize, titleFontSize, lineWidth, outputDpi);
 
-%Plotting Lithium activity using bulk 0.5m as reference state
-nexttile
-hold on
-plot(TFSI_21_p_2.spatial_nm,TFSI_21_p_2.mu_p-TFSI_05_0.mu_p(end),'-','Color','#940000','linewidth',1.5)
-hold on
-plot(TFSI_15_p_2.spatial_nm,TFSI_15_p_2.mu_p-TFSI_05_0.mu_p(end),'--','Color','#FF3333','linewidth',1.5)
-plot(TFSI_12_p_2.spatial_nm,TFSI_12_p_2.mu_p-TFSI_05_0.mu_p(end),':','Color','#FF8670','linewidth',1.5)
-xlim([0,xrange])
-ylim([-0.5,16.45])
-box on
-leg=legend({'21m','15m','12m'},'location','north','interpreter','latex','Orientation','horizontal','box','off');   
-leg.ItemTokenSize = [18,18];
-ylabel(['Ln($\bar{a}_i$/$a_i^\theta$)'],'interpreter','latex', 'fontsize', 16)
-text(.1,14.75,'\bf{a)}','interpreter','latex','FontSize',letters)
-set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
-set(groot, 'DefaultTextInterpreter', 'latex')
-ax = gca;
-ax.FontSize = 16;
-title('Li$^+$ Activity Shift', 'interpreter','latex', 'FontSize', titlesize)
-ax.YTick = 0:5:15;
-set(gca,'XTickLabel',[]);
-g=gcf;
-g.Renderer='painters';
-set(gca, 'Xcolor', 'k');
-set(gca, 'Ycolor', 'k');
-set(gca, 'FontSize', 14);
-set(gca, 'LineWidth', 1.5);
-set(gca, 'Layer', 'Top');
-set(gca, 'color', 'none');
-set(g,'InvertHardcopy','on');
+plotActivityFigure( ...
+    'Activity_05m_TFSI_V2', ...
+    'TFSI$^-$ Activity Shift', ...
+    'Ln($\bar{a}_i$/$a_i^\theta$)', ...
+    'mu_m', refMuM, ...
+    [ -0.75, 4.75 ], [ -4.25, 1.75 ], ...
+    [-1 1 4], [-4 -3 -2 -1 0 1], ...
+    'e)', 'f)', ...
+    '#000094', '#1957FF', '#85B1FF', ...
+    series, data, xRange, labelFontSize, titleFontSize, lineWidth, outputDpi);
 
-nexttile
-hold on
-plot(TFSI_21_m_2.spatial_nm,TFSI_21_m_2.mu_p-TFSI_05_0.mu_p(end),'-','Color','#940000','linewidth',1.5)
-hold on
-plot(TFSI_15_m_2.spatial_nm,TFSI_15_m_2.mu_p-TFSI_05_0.mu_p(end),'--','Color','#FF3333','linewidth',1.5)
-plot(TFSI_12_m_2.spatial_nm,TFSI_12_m_2.mu_p-TFSI_05_0.mu_p(end),':','Color','#FF8670','linewidth',1.5)
-xlim([0,xrange])
-ylim([6.5,14.75])
-box on
-xlabel(['Distance from electrode, nm'],'interpreter','latex', 'fontsize', 16)
-ylabel(['Ln($\bar{a}_i$/$a_i^\theta$)'],'interpreter','latex', 'fontsize', 16)
-text(.1,13.75,'\bf{b)}','interpreter','latex','FontSize',letters)
-set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
-set(groot, 'DefaultTextInterpreter', 'latex')
-ax = gca;
-ax.FontSize = 16;
-ax.YTick = 1:2:15;
-g=gcf;
-g.Renderer='painters';
-set(gca, 'Xcolor', 'k');
-set(gca, 'Ycolor', 'k');
-set(gca, 'FontSize', 14);
-set(gca, 'LineWidth', 1.5);
-set(gca, 'Layer', 'Top');
-set(gca, 'color', 'none');
-set(g,'InvertHardcopy','on');
+plotActivityFigure( ...
+    'Activity_05m_Water_V2', ...
+    'H$_2$O Activity Shift', ...
+    'Ln($\bar{a}_i$/$a_i^\theta$)', ...
+    'mu_0', refMu0, ...
+    [ -3.75, -0.5 ], [ -3.75, -0.5 ], ...
+    [-3 -2 -1 0], [-3 -2 -1 0], ...
+    'c)', 'd)', ...
+    '#000000', '#636363', '#858585', ...
+    series, data, xRange, labelFontSize, titleFontSize, lineWidth, outputDpi);
 
-%Saving Figure
-exportgraphics(ft,['Activity_05m_Li_V2.eps'],'Resolution',600)
-exportgraphics(ft,['Activity_05m_Li_V2.jpeg'],'Resolution',600)
-saveas(ft,['Activity_05m_Li_V2.fig'])
+function plotActivityFigure(fileStem, figureTitle, yLabelText, valueField, refValue, yLimTop, yLimBottom, yTicksTop, yTicksBottom, topLabel, bottomLabel, topColor, midColor, bottomColor, series, data, xRange, labelFontSize, titleFontSize, lineWidth, outputDpi)
+    fig = figure('Renderer', 'painters', 'Units', 'inches', 'Position', [0.01 0.01 4.5 6]);
+    tl = tiledlayout(fig, 2, 1, 'TileSpacing', 'none', 'Padding', 'compact');
 
-figure('Renderer', 'painters', 'units','inches','Position',[.01 .01 4.5 6])
-ft = tiledlayout(2,1,'TileSpacing','none','padding','compact')
-letters = 18;
-titlesize = 20;
+    plotPanel(tl, data, series, valueField, refValue, xRange, yLimTop, yTicksTop, ...
+        topLabel, false, true, figureTitle, yLabelText, topColor, midColor, bottomColor, ...
+        labelFontSize, titleFontSize, lineWidth);
 
-%Plotting TFSI activity using bulk 0.5m as reference state
-nexttile
-hold on
-plot(TFSI_21_p_2.spatial_nm,TFSI_21_p_2.mu_m-TFSI_05_0.mu_m(end),'-','Color','#000094','linewidth',1.5)
-hold on
-plot(TFSI_15_p_2.spatial_nm,TFSI_15_p_2.mu_m-TFSI_05_0.mu_m(end),'--','Color','#1957FF','linewidth',1.5)
-plot(TFSI_12_p_2.spatial_nm,TFSI_12_p_2.mu_m-TFSI_05_0.mu_m(end),':','Color','#85B1FF','linewidth',1.5)
-xlim([0,xrange])
-ylim([-0.75,4.75])
-box on
-leg=legend({'21m','15m','12m'},'location','north','interpreter','latex','Orientation','horizontal','box','off');   
-leg.ItemTokenSize = [18,18];
-title('TFSI$^-$ Activity Shift', 'interpreter','latex', 'FontSize', titlesize)
-text(.1,4.35,'\bf{e)}','interpreter','latex','FontSize',letters)
-set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
-set(groot, 'DefaultTextInterpreter', 'latex')
-ax = gca;
-ax.FontSize = 16;
-ax.YTick = -1:1:4;
-set(gca,'XTickLabel',[]);
-g=gcf;
-g.Renderer='painters';
-set(gca, 'Xcolor', 'k');
-set(gca, 'Ycolor', 'k');
-set(gca, 'FontSize', 14);
-set(gca, 'LineWidth', 1.5);
-set(gca, 'Layer', 'Top');
-set(gca, 'color', 'none');
-set(g,'InvertHardcopy','on');
+    plotPanel(tl, data, series, valueField, refValue, xRange, yLimBottom, yTicksBottom, ...
+        bottomLabel, true, false, '', '', topColor, midColor, bottomColor, ...
+        labelFontSize, titleFontSize, lineWidth);
 
-nexttile
-hold on
-plot(TFSI_21_m_2.spatial_nm,TFSI_21_m_2.mu_m-TFSI_05_0.mu_m(end),'-','Color','#000094','linewidth',1.5)
-hold on
-plot(TFSI_15_m_2.spatial_nm,TFSI_15_m_2.mu_m-TFSI_05_0.mu_m(end),'--','Color','#1957FF','linewidth',1.5)
-plot(TFSI_12_m_2.spatial_nm,TFSI_12_m_2.mu_m-TFSI_05_0.mu_m(end),':','Color','#85B1FF','linewidth',1.5)
-xlim([0,xrange])
-ylim([-4.25,1.75])
-box on
-xlabel(['Distance from electrode, nm'],'interpreter','latex', 'fontsize', 16)
-text(.1,1.25,'\bf{f)}','interpreter','latex','FontSize',letters)
-set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
-set(groot, 'DefaultTextInterpreter', 'latex')
-ax = gca;
-ax.FontSize = 16;
-ax.YTick = -4:1:1;
-g=gcf;
-g.Renderer='painters';
-set(gca, 'Xcolor', 'k');
-set(gca, 'Ycolor', 'k');
-set(gca, 'FontSize', 14);
-set(gca, 'LineWidth', 1.5);
-set(gca, 'Layer', 'Top');
-set(gca, 'color', 'none');
-set(g,'InvertHardcopy','on');
+    exportgraphics(fig, [fileStem '.eps'], 'Resolution', outputDpi);
+    exportgraphics(fig, [fileStem '.jpeg'], 'Resolution', outputDpi);
+    saveas(fig, [fileStem '.fig']);
+end
 
-%Saving Figure
-exportgraphics(ft,['Activity_05m_TFSI_V2.eps'],'Resolution',600)
-exportgraphics(ft,['Activity_05m_TFSI_V2.jpeg'],'Resolution',600)
-saveas(ft,['Activity_05m_TFSI_V2.fig'])
+function plotPanel(tl, data, series, valueField, refValue, xRange, yLim, yTicks, panelLabel, showXLabel, addLegend, figureTitle, yLabelText, topColor, midColor, bottomColor, labelFontSize, titleFontSize, lineWidth)
+    ax = nexttile(tl);
+    hold(ax, 'on');
 
-figure('Renderer', 'painters', 'units','inches','Position',[.01 .01 4.5 6])
-ft = tiledlayout(2,1,'TileSpacing','none','padding','compact')
-letters = 18;
-titlesize = 20;
+    colors = {topColor, midColor, bottomColor};
+    for k = 1:numel(series)
+        s = series(k);
+        x = data.(s.short).spatial_nm;
+        y = data.(s.short).(valueField) - refValue;
+        plot(ax, x, y, s.style, 'Color', colors{k}, 'LineWidth', lineWidth);
+    end
 
-%Plotting Water activity using bulk 0.5m as reference state
-nexttile
-hold on
-plot(TFSI_21_p_2.spatial_nm,TFSI_21_p_2.mu_0-TFSI_05_0.mu_0(end),'-','Color','#000000','linewidth',1.5)
-hold on
-plot(TFSI_15_p_2.spatial_nm,TFSI_15_p_2.mu_0-TFSI_05_0.mu_0(end),'--','Color','#636363','linewidth',1.5)
-plot(TFSI_12_p_2.spatial_nm,TFSI_12_p_2.mu_0-TFSI_05_0.mu_0(end),':','Color','#858585','linewidth',1.5)
-xlim([0,xrange])
-ylim([-3.75,-0.5])
-box on
-leg=legend({'21m','15m','12m'},'location','north','interpreter','latex','Orientation','horizontal','box','off'); 
-leg.ItemTokenSize = [18,18];
-title('H$_2$O Activity Shift', 'interpreter','latex', 'FontSize', titlesize)
-text(.1,-0.8,'\bf{c)}','interpreter','latex','FontSize',letters)
-set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
-set(groot, 'DefaultTextInterpreter', 'latex')
-ax = gca;
-ax.FontSize = 16;
-ax.YTick = -3:1:0;
-set(gca,'XTickLabel',[]);
-g=gcf;
-g.Renderer='painters';
-set(gca, 'Xcolor', 'k');
-set(gca, 'Ycolor', 'k');
-set(gca, 'FontSize', 14);
-set(gca, 'LineWidth', 1.5);
-set(gca, 'Layer', 'Top');
-set(gca, 'color', 'none');
-set(g,'InvertHardcopy','on');
+    xlim(ax, [0, xRange]);
+    ylim(ax, yLim);
+    box(ax, 'on');
+    set(ax, 'XColor', 'k', 'YColor', 'k', 'FontSize', 14, 'LineWidth', 1.5, 'Layer', 'Top', 'Color', 'none');
+    ax.YTick = yTicks;
 
-nexttile
-hold on
-plot(TFSI_21_m_2.spatial_nm,TFSI_21_m_2.mu_0-TFSI_05_0.mu_0(end),'-','Color','#000000','linewidth',1.5)
-hold on
-plot(TFSI_15_m_2.spatial_nm,TFSI_15_m_2.mu_0-TFSI_05_0.mu_0(end),'--','Color','#636363','linewidth',1.5)
-plot(TFSI_12_m_2.spatial_nm,TFSI_12_m_2.mu_0-TFSI_05_0.mu_0(end),':','Color','#858585','linewidth',1.5)
-xlim([0,xrange])
-ylim([-3.75,-0.5])
-box on
-xlabel(['Distance from electrode, nm'],'interpreter','latex', 'fontsize', 16)
-text(.1,-0.8,'\bf{d)}','interpreter','latex','FontSize',letters)
-set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
-set(groot, 'DefaultTextInterpreter', 'latex')
-ax = gca;
-ax.FontSize = 16;
-ax.YTick = -3:1:0;
-g=gcf;
-g.Renderer='painters';
-set(gca, 'Xcolor', 'k');
-set(gca, 'Ycolor', 'k');
-set(gca, 'FontSize', 14);
-set(gca, 'LineWidth', 1.5);
-set(gca, 'Layer', 'Top');
-set(gca, 'color', 'none');
-set(g,'InvertHardcopy','on');
+    if showXLabel
+        xlabel(ax, 'Distance from electrode, nm', 'Interpreter', 'latex', 'FontSize', 16);
+    else
+        ax.XTickLabel = [];
+    end
 
-%Saving Figure
-exportgraphics(ft,['Activity_05m_Water_V2.eps'],'Resolution',600)
-exportgraphics(ft,['Activity_05m_Water_V2.jpeg'],'Resolution',600)
-saveas(ft,['Activity_05m_Water_V2.fig'])
+    if ~isempty(yLabelText)
+        ylabel(ax, yLabelText, 'Interpreter', 'latex', 'FontSize', 16);
+    end
+
+    if ~isempty(figureTitle)
+        title(ax, figureTitle, 'Interpreter', 'latex', 'FontSize', titleFontSize);
+    end
+
+    text(ax, 0.1, yLim(2) - 0.12 * range(yLim), ['\bf{' panelLabel '}'], 'Interpreter', 'latex', 'FontSize', labelFontSize);
+
+    if addLegend
+        leg = legend(ax, {series.name}, 'Location', 'north', 'Interpreter', 'latex', 'Orientation', 'horizontal', 'Box', 'off');
+        leg.ItemTokenSize = [18, 18];
+    end
+end
+
+function data = loadActivityData(matFile)
+    if ~isfile(matFile)
+        error('Activity_Merge_Plotter_clean:MissingFile', 'Could not find required file: %s', matFile);
+    end
+
+    loaded = load(matFile);
+    if ~isfield(loaded, 'data')
+        error('Activity_Merge_Plotter_clean:MissingVariable', 'File %s does not contain a variable named "data".', matFile);
+    end
+    data = loaded.data;
+end
