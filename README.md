@@ -15,7 +15,7 @@ For the theory:
 	1. FD_2026_EDL_WISE_STI_Theory (Generates Meshes)
 	1. Theory_Cluster_Distribution_Plot_Bulk (Generates Bulk Cluster Distribution)
 	1. Activity_Bulk (Calculates the bulk activity as a function of molality)
-	1. Association_Probablities_Bulk (Calculates the bulk association probability as a function of molality)
+	1. Association_Probabilities_Bulk (Calculates the bulk association probability as a function of molality)
 
 		2. Implicit_Poisson_Solver_Sticky_WiSE_EDL_BVP_Panel (Generates Panels)
 		2. Implicit_Poisson_Solver_Sti_WiSE_EDL_BVP_Act_Calc (Generates Plots of the activity near and electrode and meshes)
